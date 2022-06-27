@@ -129,11 +129,6 @@ for (i in 1:8) {
                   gincdif,
                   imwbcnt,
                   
-                  wrkprty,
-                  wrkorg,
-                  sgnptit,
-                  pbldmn,
-                  bctprd,
                   yrbrn,
                   gndr,
                   eisced,
@@ -171,7 +166,7 @@ ess <- ess %>%
     cntry == "DE" & intewde == 1 ~ "DEE",  # East Germany
     cntry == "DE" & intewde == 2 ~ "DEW")) # West Germany
 
-attr(ess$country, "label") <- "Country code, ISO3C"
+attr(ess$country, "label") <- "Country/region code, ISO3C"
 
 # _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 # Country-wave | country, essround --> countrywave ----
@@ -211,31 +206,6 @@ ess <- ess %>%
   mutate(dweight = dweight / weight_mean) %>%
   select(-weight_mean)
 
-# _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-# Worked for party or group | wrkprty, wrkorg --> partygroup ----
-
-ess <- ess %>%
-  mutate(partygroup = case_when(wrkprty == 1 | wrkorg == 1 ~ 1,
-                                wrkprty == 2 & wrkorg == 2 ~ 0),
-         partygroup = labelled(partygroup,
-                               c("Not done" = 0, "Has done" = 1),
-                               label = "Worked for a party or a group, last 12 months"))
-
-# _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-# Protest | sgnptit, bctprd, pbldmn --> petition, boycott, demonstration ----
-
-recode_action_var <- function(var, label) {
-  var_label <- c("Not done" = 0, "Has done" = 1)
-  r <- case_when(var == 1 ~ 1,
-                 var == 2 ~ 0)
-  r <- labelled(r, var_label, label = label)
-  r
-}
-
-ess <- ess %>%
-  mutate(petition = recode_action_var(sgnptit, label = "Signed a petition, last 12 months"),
-         boycott = recode_action_var(bctprd, label = "Boycotted certain products, last 12 months"),
-         demonstration = recode_action_var(pbldmn, label = "Taken part in lawful public demonstration, last 12 months"))
 
 # _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 # Gender (woman) | gndr --> female ----
@@ -259,16 +229,6 @@ ess <- ess %>%
   mutate(cohort = floor(yrbrn / 5) * 5)
 
 attr(ess$cohort, "label") <- "5-year cohort"
-
-# _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-# Country-cohort | country, yrbrn --> yrbrn ----  
-
-ess <- ess %>%
-  mutate(country_yrbrn = ifelse(!is.na(yrbrn), 
-                                paste0(country, yrbrn), 
-                                NA_character_))
-
-attr(ess$country_yrbrn, "label") <- "Country-cohort"
 
 
 # _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -456,17 +416,12 @@ ess <- ess %>%
          gincdif,
          imwbcnt,
          
-         demonstration,
-         petition,
-         boycott,
          female,
          age10,
          yrbrn,
          cohort,
-         country_yrbrn,
          edu,
          unemp,
-         partygroup,
          union,
          native,
          city,
@@ -490,7 +445,6 @@ rm(eastsoc,
    load_one_package,
    load_packages,
    p,
-   recode_action_var,
    save_ess_rds)
 
 gc()
